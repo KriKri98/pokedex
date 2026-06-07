@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-func get(url string) (map[string]any, error) {
+func Get(url string) (map[string]any, error) {
 	var data map[string]any
 
 	res, err := http.Get(url)

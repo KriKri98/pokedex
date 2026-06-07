@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+
+	"github.com/KriKri98/pokedex/internal/pokeapi"
 )
 
 type cliCommand struct {
@@ -39,14 +41,15 @@ func commandMap(configuraion *config) error {
 		return err
 	}
 	for i := 0; i < 20; i++ {
-		data, err := pokeapi.get(configuraion.Next[:40] + fmt.Sprint(i+nextId))
+		data, err := pokeapi.Get(configuraion.Next[:40] + fmt.Sprint(i+nextId))
 		if err != nil {
 			fmt.Printf("Error: %v", err)
 			return err
 		}
-		fmt.Println(data.name)
+		name := data["name"]
+		fmt.Println(name)
 	}
-	configuraion.Previous = configuraion.Next
+	configuraion.Previous = configuraion.Next[:40] + fmt.Sprint(nextId-20)
 	configuraion.Next = configuraion.Next[:40] + fmt.Sprint(20+nextId)
 	return nil
 
@@ -58,15 +61,21 @@ func commandMapb(configuraion *config) error {
 		return err
 	}
 	for i := 0; i < 20; i++ {
-		data, err := pokeapi.get(configuraion.Next[:40] + fmt.Sprint(i+previousId))
+		data, err := pokeapi.Get(configuraion.Next[:40] + fmt.Sprint(i+previousId))
 		if err != nil {
 			fmt.Printf("Error: %v", err)
 			return err
 		}
-		fmt.Println(data.name)
+		name := data["name"]
+		fmt.Println(name)
 	}
+
 	configuraion.Next = configuraion.Previous
-	configuraion.Previous = configuraion.Previous[:40] + fmt.Sprint(previousId-20)
+	if previousId < 20 {
+		configuraion.Previous = configuraion.Previous[:40] + fmt.Sprint(1)
+	} else {
+		configuraion.Previous = configuraion.Previous[:40] + fmt.Sprint(previousId-20)
+	}
 
 	return nil
 
