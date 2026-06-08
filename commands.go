@@ -11,21 +11,16 @@ import (
 type cliCommand struct {
 	name        string
 	description string
-	callback    func(*config) error
+	callback    func(*pokeapi.Client) error
 }
 
-type config struct {
-	Next     string
-	Previous string
-}
-
-func commandExit(configuration *config) error {
+func commandExit(client *pokeapi.Client) error {
 	fmt.Printf("Closing the Pokedex... Goodbye!\n")
 	os.Exit(0)
 	return nil
 }
 
-func commandHelp(configuration *config) error {
+func commandHelp(client *pokeapi.Client) error {
 	fmt.Println("Welcome to the Pokedex!")
 	fmt.Print("Usage:\n\n")
 	commands := getCommands()
@@ -35,13 +30,13 @@ func commandHelp(configuration *config) error {
 	return nil
 }
 
-func commandMap(configuraion *config) error {
-	nextId, err := strconv.Atoi(configuraion.Next[40:])
+func commandMap(client *pokeapi.Client) error {
+	nextId, err := strconv.Atoi(client.Config.Next[40:])
 	if err != nil {
 		return err
 	}
 	for i := 0; i < 20; i++ {
-		data, err := pokeapi.Get(configuraion.Next[:40] + fmt.Sprint(i+nextId))
+		data, err := client.Get(client.Config.Next[:40] + fmt.Sprint(i+nextId))
 		if err != nil {
 			fmt.Printf("Error: %v", err)
 			return err
@@ -49,19 +44,23 @@ func commandMap(configuraion *config) error {
 		name := data["name"]
 		fmt.Println(name)
 	}
-	configuraion.Previous = configuraion.Next[:40] + fmt.Sprint(nextId-20)
-	configuraion.Next = configuraion.Next[:40] + fmt.Sprint(20+nextId)
+	if nextId < 20 {
+		client.Config.Previous = client.Config.Previous[:40] + fmt.Sprint(1)
+	} else {
+		client.Config.Previous = client.Config.Next[:40] + fmt.Sprint(nextId-20)
+	}
+	client.Config.Next = client.Config.Next[:40] + fmt.Sprint(20+nextId)
 	return nil
 
 }
 
-func commandMapb(configuraion *config) error {
-	previousId, err := strconv.Atoi(configuraion.Previous[40:])
+func commandMapb(client *pokeapi.Client) error {
+	previousId, err := strconv.Atoi(client.Config.Previous[40:])
 	if err != nil {
 		return err
 	}
 	for i := 0; i < 20; i++ {
-		data, err := pokeapi.Get(configuraion.Next[:40] + fmt.Sprint(i+previousId))
+		data, err := client.Get(client.Config.Next[:40] + fmt.Sprint(i+previousId))
 		if err != nil {
 			fmt.Printf("Error: %v", err)
 			return err
@@ -70,11 +69,11 @@ func commandMapb(configuraion *config) error {
 		fmt.Println(name)
 	}
 
-	configuraion.Next = configuraion.Previous
+	client.Config.Next = client.Config.Previous
 	if previousId < 20 {
-		configuraion.Previous = configuraion.Previous[:40] + fmt.Sprint(1)
+		client.Config.Previous = client.Config.Previous[:40] + fmt.Sprint(1)
 	} else {
-		configuraion.Previous = configuraion.Previous[:40] + fmt.Sprint(previousId-20)
+		client.Config.Previous = client.Config.Previous[:40] + fmt.Sprint(previousId-20)
 	}
 
 	return nil

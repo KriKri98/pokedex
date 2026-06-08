@@ -10,7 +10,6 @@ import (
 
 func main() {
 	client := pokeapi.NewClient(5)
-	getCommands()
 	scanner := bufio.NewScanner(os.Stdin)
 	for {
 		fmt.Print("Pokedex > ")
@@ -20,13 +19,16 @@ func main() {
 		commands := getCommands()
 		_, exists := commands[cleanedInput[0]]
 		if exists {
-			err := commands[cleanedInput[0]].callback(client)
+			err := commands[cleanedInput[0]].callback(&client)
 			if err != nil {
 				fmt.Printf("Error: %v\n", err)
 			}
 		} else {
 			fmt.Println("Unknown command")
 		}
-		fmt.Print(scanner.Err())
+		scanErr := scanner.Err()
+		if scanErr != nil {
+			fmt.Println(scanErr)
+		}
 	}
 }
