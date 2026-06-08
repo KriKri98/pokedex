@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"strconv"
 
 	"github.com/KriKri98/pokedex/internal/pokeapi"
 )
@@ -31,51 +30,57 @@ func commandHelp(client *pokeapi.Client) error {
 }
 
 func commandMap(client *pokeapi.Client) error {
-	nextId, err := strconv.Atoi(client.Config.Next[40:])
+	if client.Config.Next == "" {
+		return fmt.Errorf("no next maps")
+	}
+	data, err := client.Get(client.Config.Next)
 	if err != nil {
 		return err
 	}
-	for i := 0; i < 20; i++ {
-		data, err := client.Get(client.Config.Next[:40] + fmt.Sprint(i+nextId))
-		if err != nil {
-			fmt.Printf("Error: %v", err)
-			return err
-		}
-		name := data["name"]
-		fmt.Println(name)
-	}
-	if nextId < 20 {
-		client.Config.Previous = client.Config.Previous[:40] + fmt.Sprint(1)
+	if next, ok := data["next"].(string); ok {
+		client.Config.Next = next
 	} else {
-		client.Config.Previous = client.Config.Next[:40] + fmt.Sprint(nextId-20)
+		client.Config.Next = "" // or however your config represents "no next page"
 	}
-	client.Config.Next = client.Config.Next[:40] + fmt.Sprint(20+nextId)
+	if previous, ok := data["previous"].(string); ok {
+		client.Config.Previous = previous
+	} else {
+		client.Config.Previous = "" // or however your config represents "no next page"
+	}
+
+	locations := data["results"].([]any)
+	for _, l := range locations {
+		loc := l.(map[string]any)
+		fmt.Println(loc["name"].(string))
+	}
 	return nil
 
 }
 
 func commandMapb(client *pokeapi.Client) error {
-	previousId, err := strconv.Atoi(client.Config.Previous[40:])
+	if client.Config.Previous == "" {
+		return fmt.Errorf("no previous maps")
+	}
+	data, err := client.Get(client.Config.Previous)
 	if err != nil {
 		return err
 	}
-	for i := 0; i < 20; i++ {
-		data, err := client.Get(client.Config.Next[:40] + fmt.Sprint(i+previousId))
-		if err != nil {
-			fmt.Printf("Error: %v", err)
-			return err
-		}
-		name := data["name"]
-		fmt.Println(name)
-	}
-
-	client.Config.Next = client.Config.Previous
-	if previousId < 20 {
-		client.Config.Previous = client.Config.Previous[:40] + fmt.Sprint(1)
+	if next, ok := data["next"].(string); ok {
+		client.Config.Next = next
 	} else {
-		client.Config.Previous = client.Config.Previous[:40] + fmt.Sprint(previousId-20)
+		client.Config.Next = "" // or however your config represents "no next page"
+	}
+	if previous, ok := data["previous"].(string); ok {
+		client.Config.Previous = previous
+	} else {
+		client.Config.Previous = "" // or however your config represents "no next page"
 	}
 
+	locations := data["results"].([]any)
+	for _, l := range locations {
+		loc := l.(map[string]any)
+		fmt.Println(loc["name"].(string))
+	}
 	return nil
 
 }

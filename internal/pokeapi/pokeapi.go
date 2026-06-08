@@ -23,7 +23,7 @@ func (c *Client) Get(url string) (map[string]any, error) {
 		defer res.Body.Close()
 		statusCode := res.StatusCode
 		if statusCode >= 400 {
-			return data, fmt.Errorf("Status: %v", statusCode)
+			return data, fmt.Errorf("status: %v", statusCode)
 		}
 		storage, err = io.ReadAll(res.Body)
 		if err != nil {
@@ -54,8 +54,7 @@ func NewClient(interval time.Duration) Client {
 	return Client{
 		Cache: *pokecache.NewCache(interval * time.Second),
 		Config: Config{
-			Next:     "https://pokeapi.co/api/v2/location-area/1",
-			Previous: "https://pokeapi.co/api/v2/location-area/1",
+			Next: "https://pokeapi.co/api/v2/location-area",
 		},
 	}
 }
