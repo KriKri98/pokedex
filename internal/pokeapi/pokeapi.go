@@ -3,6 +3,9 @@ package pokeapi
 import (
 	"encoding/json"
 	"net/http"
+	"time"
+
+	"github.com/KriKri98/pokedex/internal/pokecache"
 )
 
 func Get(url string) (map[string]any, error) {
@@ -21,4 +24,24 @@ func Get(url string) (map[string]any, error) {
 	}
 	return data, nil
 
+}
+
+type Client struct {
+	cache  pokecache.Cache
+	config Config
+}
+
+type Config struct {
+	Next     string
+	Previous string
+}
+
+func NewClient(interval time.Duration) Client {
+	return Client{
+		cache: *pokecache.NewCache(interval * time.Second),
+		config: Config{
+			Next:     "https://pokeapi.co/api/v2/location-area/1",
+			Previous: "https://pokeapi.co/api/v2/location-area/1",
+		},
+	}
 }
