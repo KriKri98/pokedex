@@ -41,7 +41,7 @@ func (c *Client) Get(url string) (map[string]any, error) {
 }
 
 type Client struct {
-	Cache  pokecache.Cache
+	Cache  *pokecache.Cache
 	Config Config
 }
 
@@ -52,7 +52,7 @@ type Config struct {
 
 func NewClient(interval time.Duration) Client {
 	return Client{
-		Cache: *pokecache.NewCache(interval * time.Second),
+		Cache: pokecache.NewCache(interval),
 		Config: Config{
 			Next: "https://pokeapi.co/api/v2/location-area",
 		},
