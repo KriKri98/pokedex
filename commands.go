@@ -10,16 +10,16 @@ import (
 type cliCommand struct {
 	name        string
 	description string
-	callback    func(*pokeapi.Client) error
+	callback    func(*pokeapi.Client, string) error
 }
 
-func commandExit(client *pokeapi.Client) error {
+func commandExit(client *pokeapi.Client, parameter string) error {
 	fmt.Printf("Closing the Pokedex... Goodbye!\n")
 	os.Exit(0)
 	return nil
 }
 
-func commandHelp(client *pokeapi.Client) error {
+func commandHelp(client *pokeapi.Client, parameter string) error {
 	fmt.Println("Welcome to the Pokedex!")
 	fmt.Print("Usage:\n\n")
 	commands := getCommands()
@@ -29,7 +29,7 @@ func commandHelp(client *pokeapi.Client) error {
 	return nil
 }
 
-func commandMap(client *pokeapi.Client) error {
+func commandMap(client *pokeapi.Client, parameter string) error {
 	if client.Config.Next == "" {
 		return fmt.Errorf("no next maps")
 	}
@@ -57,7 +57,7 @@ func commandMap(client *pokeapi.Client) error {
 
 }
 
-func commandMapb(client *pokeapi.Client) error {
+func commandMapb(client *pokeapi.Client, parameter string) error {
 	if client.Config.Previous == "" {
 		return fmt.Errorf("no previous maps")
 	}
@@ -85,6 +85,28 @@ func commandMapb(client *pokeapi.Client) error {
 
 }
 
+func commandExplore(client *pokeapi.Client, location string) error {
+	if location == "" {
+		return fmt.Errorf("no location given")
+	}
+	fullUrl := "https://pokeapi.co/api/v2/location-area/" + location
+	data, err := client.Get(fullUrl)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Exploring %v...\n", location)
+	fmt.Printf("Found Pokemon:\n")
+	pokemonEncounters := data["pokemon_encounters"].([]any) //0 - 99
+	for _, p := range pokemonEncounters {                   // p = 0
+		listData := p.(map[string]any)                  //listData = pokemon + version_details
+		pokemon := listData["pokemon"].(map[string]any) //pokemon
+		fmt.Printf("- %v\n", pokemon["name"].(string))
+
+	}
+	return nil
+
+}
+
 func getCommands() map[string]cliCommand {
 	return map[string]cliCommand{
 		"exit": {
@@ -106,6 +128,11 @@ func getCommands() map[string]cliCommand {
 			name:        "mapb",
 			description: "Displays the last 20 map locations",
 			callback:    commandMapb,
+		},
+		"explore": {
+			name:        "explore",
+			description: "Displays all pokemon in a given area",
+			callback:    commandExplore,
 		},
 	}
 }

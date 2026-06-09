@@ -17,10 +17,14 @@ func main() {
 		scanner.Scan()
 		input := scanner.Text()
 		cleanedInput := cleanInput(input)
+		if len(cleanedInput) == 1 {
+			cleanedInput = append(cleanedInput, "")
+		}
+
 		commands := getCommands()
 		_, exists := commands[cleanedInput[0]]
 		if exists {
-			err := commands[cleanedInput[0]].callback(&client)
+			err := commands[cleanedInput[0]].callback(&client, cleanedInput[1])
 			if err != nil {
 				fmt.Printf("Error: %v\n", err)
 			}
