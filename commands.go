@@ -1,8 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"math/rand"
 	"os"
+	"time"
 
 	"github.com/KriKri98/pokedex/internal/pokeapi"
 )
@@ -33,8 +36,12 @@ func commandMap(client *pokeapi.Client, parameter string) error {
 	if client.Config.Next == "" {
 		return fmt.Errorf("no next maps")
 	}
-	data, err := client.Get(client.Config.Next)
+	resp, err := client.Get(client.Config.Next)
 	if err != nil {
+		return err
+	}
+	data := map[string]any{}
+	if err := json.Unmarshal(resp, &data); err != nil {
 		return err
 	}
 	if next, ok := data["next"].(string); ok {
@@ -61,8 +68,12 @@ func commandMapb(client *pokeapi.Client, parameter string) error {
 	if client.Config.Previous == "" {
 		return fmt.Errorf("no previous maps")
 	}
-	data, err := client.Get(client.Config.Previous)
+	resp, err := client.Get(client.Config.Previous)
 	if err != nil {
+		return err
+	}
+	data := map[string]any{}
+	if err := json.Unmarshal(resp, &data); err != nil {
 		return err
 	}
 	if next, ok := data["next"].(string); ok {
@@ -90,7 +101,12 @@ func commandExplore(client *pokeapi.Client, location string) error {
 		return fmt.Errorf("no location given")
 	}
 	fullUrl := "https://pokeapi.co/api/v2/location-area/" + location
-	data, err := client.Get(fullUrl)
+	data := map[string]any{}
+	resp, err := client.Get(fullUrl)
+
+	if err := json.Unmarshal(resp, &data); err != nil {
+		return err
+	}
 	if err != nil {
 		return err
 	}
@@ -105,6 +121,32 @@ func commandExplore(client *pokeapi.Client, location string) error {
 	}
 	return nil
 
+}
+
+func commandCatch(client *pokeapi.Client, pokemon string) error {
+	if pokemon == "" {
+		return fmt.Errorf("no pokemon given")
+	}
+	fullUrl := "https://pokeapi.co/api/v2/pokemon/" + pokemon
+	resp, err := client.Get(fullUrl)
+	if err != nil {
+		return err
+	}
+	p := pokeapi.Pokemon{}
+	if err := json.Unmarshal(resp, &p); err != nil {
+		return err
+	}
+	fmt.Printf("Throwing a Pokeball at %v...\n", pokemon)
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	chance := r.Intn(500)
+	if chance >= p.BaseExperience {
+		fmt.Printf("%v was caught!\n", pokemon)
+		client.Pokedex[pokemon] = p
+	} else {
+		fmt.Printf("%v escaped!\n", pokemon)
+	}
+
+	return nil
 }
 
 func getCommands() map[string]cliCommand {
@@ -133,6 +175,11 @@ func getCommands() map[string]cliCommand {
 			name:        "explore",
 			description: "Displays all pokemon in a given area",
 			callback:    commandExplore,
+		},
+		"catch": {
+			name:        "catch",
+			description: "Tries to catch a pokemon",
+			callback:    commandCatch,
 		},
 	}
 }
