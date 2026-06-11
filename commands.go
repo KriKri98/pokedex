@@ -141,11 +141,34 @@ func commandCatch(client *pokeapi.Client, pokemon string) error {
 	chance := r.Intn(500)
 	if chance >= p.BaseExperience {
 		fmt.Printf("%v was caught!\n", pokemon)
-		client.Pokedex[pokemon] = p
+		client.Pokedex[p.Name] = p
 	} else {
 		fmt.Printf("%v escaped!\n", pokemon)
 	}
 
+	return nil
+}
+
+func commandInspect(client *pokeapi.Client, pokemon string) error {
+	if pokemon == "" {
+		return fmt.Errorf("no pokemon to inspect")
+	}
+	p, ok := client.Pokedex[pokemon]
+	if !ok {
+		fmt.Printf("you have not caught that pokemon\n")
+		return nil
+	}
+	fmt.Printf("Name: %v\n", p.Name)
+	fmt.Printf("Height: %v\n", p.Height)
+	fmt.Printf("Weight: %v\n", p.Weight)
+	fmt.Printf("Stats:\n")
+	for _, s := range p.Stats {
+		fmt.Printf("\t- %v: %v\n", s.Stat.Name, s.BaseStat)
+	}
+	fmt.Printf("Types:\n")
+	for _, t := range p.Types {
+		fmt.Printf("\t- %v\n", t.Type.Name)
+	}
 	return nil
 }
 
@@ -180,6 +203,11 @@ func getCommands() map[string]cliCommand {
 			name:        "catch",
 			description: "Tries to catch a pokemon",
 			callback:    commandCatch,
+		},
+		"inspect": {
+			name:        "inspect",
+			description: "Displays information about a specific, already caught pokemon",
+			callback:    commandInspect,
 		},
 	}
 }
