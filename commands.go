@@ -172,6 +172,14 @@ func commandInspect(client *pokeapi.Client, pokemon string) error {
 	return nil
 }
 
+func commandPokedex(client *pokeapi.Client, arg string) error {
+	fmt.Printf("Your Pokedex:\n")
+	for pokemon, _ := range client.Pokedex {
+		fmt.Printf("\t- %v\n", pokemon)
+	}
+	return nil
+}
+
 func getCommands() map[string]cliCommand {
 	return map[string]cliCommand{
 		"exit": {
@@ -208,6 +216,11 @@ func getCommands() map[string]cliCommand {
 			name:        "inspect",
 			description: "Displays information about a specific, already caught pokemon",
 			callback:    commandInspect,
+		},
+		"pokedex": {
+			name:        "pokedex",
+			description: "Displays all caught Pokemon",
+			callback:    commandPokedex,
 		},
 	}
 }
